@@ -1078,6 +1078,10 @@ exports.Call = class Call extends Base
 
   children: ['variable', 'args']
 
+  pipe: (arg) ->
+    @args.unshift arg
+    this
+
   # When setting the location, we sometimes need to update the start location to
   # account for a newly-discovered `new` operator to the left of us. This
   # expands the range on the left, but not the right.

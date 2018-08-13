@@ -533,6 +533,7 @@ exports.Lexer = class Lexer
   # as being “spaced”, because there are some cases where it makes a difference.
   whitespaceToken: ->
     return 0 unless (match = WHITESPACE.exec @chunk) or
+                    (match = /^\s+(?=\|>)/.exec @chunk) or
                     (nline = @chunk.charAt(0) is '\n')
     prev = @prev()
     prev[if match then 'spaced' else 'newLine'] = true if prev
@@ -682,6 +683,7 @@ exports.Lexer = class Lexer
       tag = 'EXPORT_ALL'
     else if value in MATH            then tag = 'MATH'
     else if value in COMPARE         then tag = 'COMPARE'
+    else if value in PIPE            then tag = 'PIPE'
     else if value in COMPOUND_ASSIGN then tag = 'COMPOUND_ASSIGN'
     else if value in UNARY           then tag = 'UNARY'
     else if value in UNARY_MATH      then tag = 'UNARY_MATH'
@@ -1206,6 +1208,7 @@ NUMBER     = ///
 
 OPERATOR   = /// ^ (
   ?: [-=]>             # function
+   | \|>               # pipe
    | [-+*/%<>&|^!?=]=  # compound assign / compare
    | >>>=?             # zero-fill right shift
    | ([-+:])\1         # doubles
@@ -1339,6 +1342,8 @@ UNARY_MATH = ['!', '~']
 # Bit-shifting tokens.
 SHIFT = ['<<', '>>', '>>>']
 
+PIPE = ['|>']
+
 # Comparison tokens.
 COMPARE = ['==', '!=', '<', '>', '<=', '>=']
 
@@ -1380,4 +1385,4 @@ INDENTABLE_CLOSERS = [')', '}', ']']
 # Tokens that, when appearing at the end of a line, suppress a following TERMINATOR/INDENT token
 UNFINISHED = ['\\', '.', '?.', '?::', 'UNARY', 'MATH', 'UNARY_MATH', '+', '-',
            '**', 'SHIFT', 'RELATION', 'COMPARE', '&', '^', '|', '&&', '||',
-           'BIN?', 'EXTENDS']
+           'BIN?', 'EXTENDS', 'PIPE']
