@@ -90,7 +90,7 @@ CoffeeScript.eval = (code, options = {}) ->
       _require.resolve = (request) -> Module._resolveFilename request, _module
   o = {}
   o[k] = v for own k, v of options
-  o.bare = on # ensure return value
+  o.bare = true # ensure return value
   js = CoffeeScript.compile code, o
   if sandbox is global
     vm.runInThisContext js
@@ -116,7 +116,7 @@ CoffeeScript._compileFile = (filename, options = {}) ->
     filename: filename
     literate: helpers.isLiterate filename
     sourceFiles: [filename]
-    inlineMap: yes # Always generate a source map, so that stack traces line up.
+    inlineMap: true # Always generate a source map, so that stack traces line up.
 
   try
     answer = CoffeeScript.compile stripped, options

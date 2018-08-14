@@ -47,15 +47,15 @@ Look up a variable name in lexical scope, and declare it if it does not
 already exist.
 
       find: (name, type = 'var') ->
-        return yes if @check name
+        return true if @check name
         @add name, type
-        no
+        false
 
 Reserve a variable name as originating from a function parameter for this
 scope. No `var` required for internal references.
 
       parameter: (name) ->
-        return if @shared and @parent.check name, yes
+        return if @shared and @parent.check name, true
         @add name, 'param'
 
 Just check to see if a variable has already been declared, without reserving,
@@ -93,15 +93,15 @@ compiler-generated variable. `_var`, `_var2`, and so on...
           temp = @temporary name, index, options.single
           break unless @check(temp) or temp in @root.referencedVars
           index++
-        @add temp, 'var', yes if options.reserve ? true
+        @add temp, 'var', true if options.reserve ? true
         temp
 
 Ensure that an assignment is made at the top of this scope
 (or at the top-level scope, if requested).
 
       assign: (name, value) ->
-        @add name, {value, assigned: yes}, yes
-        @hasAssignments = yes
+        @add name, {value, assigned: true}, true
+        @hasAssignments = true
 
 Does this scope have any declared variables?
 

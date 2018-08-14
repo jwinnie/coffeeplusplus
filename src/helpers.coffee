@@ -82,18 +82,18 @@ exports.invertLiterate = (code) ->
     )
     [\ \t]            # followed by a space or a tab.
   ///
-  insideComment = no
+  insideComment = false
   for line in code.split('\n')
     if blankLine.test(line)
-      insideComment = no
+      insideComment = false
       out.push line
     else if insideComment or listItemStart.test(line)
-      insideComment = yes
+      insideComment = true
       out.push "# #{line}"
     else if not insideComment and indented.test(line)
       out.push line
     else
-      insideComment = yes
+      insideComment = true
       out.push "# #{line}"
   out.join '\n'
 
@@ -165,7 +165,7 @@ exports.locationDataToString = (obj) ->
     "No location data"
 
 # A `.coffee.md` compatible version of `basename`, that returns the file sans-extension.
-exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
+exports.baseFileName = (file, stripExt = false, useWinPathSep = false) ->
   pathSep = if useWinPathSep then /\\|\// else /\//
   parts = file.split(pathSep)
   file = parts[parts.length - 1]

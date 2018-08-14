@@ -26,7 +26,7 @@ moveComments = (fromToken, toToken) ->
 # Optionally have this new token take the attached comments from another token.
 generate = (tag, value, origin, commentsToken) ->
   token = [tag, value]
-  token.generated = yes
+  token.generated = true
   token.origin = origin if origin
   moveComments commentsToken, token if commentsToken
   token
@@ -142,13 +142,13 @@ exports.Rewriter = class Rewriter
   # Returns `yes` if standing in front of something looking like
   # `@<x>:`, `<x>:` or `<EXPRESSION_START><x>...<EXPRESSION_END>:`.
   looksObjectish: (j) ->
-    return yes if @indexOfTag(j, '@', null, ':') isnt -1 or @indexOfTag(j, null, ':') isnt -1
+    return true if @indexOfTag(j, '@', null, ':') isnt -1 or @indexOfTag(j, null, ':') isnt -1
     index = @indexOfTag j, EXPRESSION_START
     if index isnt -1
       end = null
       @detectEnd index + 1, ((token) -> token[0] in EXPRESSION_END), ((token, i) -> end = i)
-      return yes if @tag(end + 1) is ':'
-    no
+      return true if @tag(end + 1) is ':'
+    false
 
   # Returns `yes` if current line of tokens contain an element of tags on same
   # expression level. Stop searching at `LINEBREAKS` or explicit start of
@@ -194,7 +194,7 @@ exports.Rewriter = class Rewriter
       inImplicitControl = -> inImplicit() and stackTop()?[0] is 'CONTROL'
 
       startImplicitCall = (idx) ->
-        stack.push ['(', idx, ours: yes]
+        stack.push ['(', idx, ours: true]
         tokens.splice idx, 0, generate 'CALL_START', '(', ['', 'implicit function call', token[2]], prevToken
 
       endImplicitCall = ->
@@ -202,10 +202,10 @@ exports.Rewriter = class Rewriter
         tokens.splice i, 0, generate 'CALL_END', ')', ['', 'end of input', token[2]], prevToken
         i += 1
 
-      startImplicitObject = (idx, startsLine = yes) ->
-        stack.push ['{', idx, sameLine: yes, startsLine: startsLine, ours: yes]
+      startImplicitObject = (idx, startsLine = true) ->
+        stack.push ['{', idx, sameLine: true, startsLine: startsLine, ours: true]
         val = new String '{'
-        val.generated = yes
+        val.generated = true
         tokens.splice idx, 0, generate '{', val, token, prevToken
 
       endImplicitObject = (j) ->
@@ -219,8 +219,8 @@ exports.Rewriter = class Rewriter
         @detectEnd j,
           (token) -> token[0] is 'TERMINATOR'
           (token, i) -> nextTerminatorIdx = i
-          returnOnNegativeLevel: yes
-        return no unless nextTerminatorIdx?
+          returnOnNegativeLevel: true
+        return false unless nextTerminatorIdx?
         @looksObjectish nextTerminatorIdx + 1
 
       # Don’t end an implicit call/object on next indent if any of these are in an argument/value.
@@ -228,7 +228,7 @@ exports.Rewriter = class Rewriter
         (inImplicitCall() or inImplicitObject()) and tag in CONTROL_IN_IMPLICIT or
         inImplicitObject() and prevTag is ':' and tag is 'FOR'
       )
-        stack.push ['CONTROL', i, ours: yes]
+        stack.push ['CONTROL', i, ours: true]
         return forward(1)
 
       if tag is 'INDENT' and inImplicit()
@@ -266,15 +266,15 @@ exports.Rewriter = class Rewriter
       inControlFlow = =>
         seenFor = @findTagsBackwards(i, ['FOR']) and @findTagsBackwards(i, ['FORIN', 'FOROF', 'FORFROM'])
         controlFlow = seenFor or @findTagsBackwards i, ['WHILE', 'UNTIL', 'LOOP', 'LEADING_WHEN']
-        return no unless controlFlow
-        isFunc = no
+        return false unless controlFlow
+        isFunc = false
         tagCurrentLine = token[2].first_line
         @detectEnd i,
           (token, i) -> token[0] in LINEBREAKS
           (token, i) ->
             [prevTag, ,{first_line}] = tokens[i - 1] || []
             isFunc = tagCurrentLine is first_line and prevTag in ['->', '=>']
-          returnOnNegativeLevel: yes
+          returnOnNegativeLevel: true
         isFunc
 
       # Recognize standard implicit calls like
@@ -355,7 +355,7 @@ exports.Rewriter = class Rewriter
       if tag in LINEBREAKS
         for stackItem in stack by -1
           break unless isImplicit stackItem
-          stackItem[2].sameLine = no if isImplicitObject stackItem
+          stackItem[2].sameLine = false if isImplicitObject stackItem
 
       newLine = prevTag is 'OUTDENT' or prevToken.newLine
       if tag in IMPLICIT_END or
@@ -434,7 +434,7 @@ exports.Rewriter = class Rewriter
       j = i
       j++ while j isnt tokens.length and tokens[j][0] in DISCARDED
       unless j is tokens.length or tokens[j][0] in DISCARDED
-        comment.unshift = yes for comment in token.comments
+        comment.unshift = true for comment in token.comments
         moveComments token, tokens[j]
         return 1
       else # All following tokens are doomed!
@@ -466,7 +466,7 @@ exports.Rewriter = class Rewriter
         dummyToken = comments: []
         j = token.comments.length - 1
         until j is -1
-          if token.comments[j].newLine is no and token.comments[j].here is no
+          if token.comments[j].newLine is false and token.comments[j].here is false
             dummyToken.comments.unshift token.comments[j]
             token.comments.splice j, 1
           j--
@@ -666,10 +666,10 @@ exports.Rewriter = class Rewriter
     indent  = ['INDENT', 2]
     outdent = ['OUTDENT', 2]
     if origin
-      indent.generated = outdent.generated = yes
+      indent.generated = outdent.generated = true
       indent.origin = outdent.origin = origin
     else
-      indent.explicit = outdent.explicit = yes
+      indent.explicit = outdent.explicit = true
     [indent, outdent]
 
   generate: generate

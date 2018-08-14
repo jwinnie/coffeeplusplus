@@ -75,14 +75,14 @@ set "sources" and "file", respectively.
         lastColumn        = 0
         lastSourceLine    = 0
         lastSourceColumn  = 0
-        needComma         = no
+        needComma         = false
         buffer            = ""
 
         for lineMap, lineNumber in @lines when lineMap
           for mapping in lineMap.columns when mapping
             while writingline < mapping.line
               lastColumn = 0
-              needComma = no
+              needComma = false
               buffer += ";"
               writingline++
 
@@ -90,7 +90,7 @@ Write a comma if we've already written a segment on this line.
 
             if needComma
               buffer += ","
-              needComma = no
+              needComma = false
 
 Write the next segment. Segments can be 1, 4, or 5 values.  If just one, then it
 is a generated column which doesn't match anything in the source code.
@@ -114,7 +114,7 @@ The starting column in the original source, relative to the previous column.
 
             buffer += @encodeVlq mapping.sourceColumn - lastSourceColumn
             lastSourceColumn = mapping.sourceColumn
-            needComma = yes
+            needComma = true
 
 Produce the canonical JSON object format for a "v3" source map.
 
@@ -182,6 +182,3 @@ Regular Base64 Encoding
 Our API for source maps is just the `SourceMap` class.
 
     module.exports = SourceMap
-
-
-

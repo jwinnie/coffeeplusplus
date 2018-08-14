@@ -89,7 +89,7 @@ exports.run = ->
   # Make the REPL *CLI* use the global context so as to (a) be consistent with the
   # `node` REPL CLI and, therefore, (b) make packages that modify native prototypes
   # (such as 'colors' and 'sugar') work as expected.
-  replCliOpts = useGlobal: yes
+  replCliOpts = useGlobal: true
   opts.prelude = makePrelude opts.require       if opts.require
   replCliOpts.prelude = opts.prelude
   replCliOpts.transpile = opts.transpile
@@ -135,12 +135,12 @@ exports.run = ->
     '''
   for source in opts.arguments
     source = path.resolve source
-    compilePath source, yes, source
+    compilePath source, true, source
 
 makePrelude = (requires) ->
   requires.map (module) ->
     [full, name, module] = match if match = module.match(/^(.*)=(.*)$/)
-    name or= helpers.baseFileName module, yes, useWinPathSep
+    name or= helpers.baseFileName module, true, useWinPathSep
     "global['#{name}'] = require('#{module}')"
   .join ';'
 
@@ -160,7 +160,7 @@ compilePath = (source, topLevel, base) ->
     throw err
   if stats.isDirectory()
     if path.basename(source) is 'node_modules'
-      notSources[source] = yes
+      notSources[source] = true
       return
     if opts.run
       compilePath findDirectoryIndex(source), topLevel, base
@@ -171,7 +171,7 @@ compilePath = (source, topLevel, base) ->
     catch err
       if err.code is 'ENOENT' then return else throw err
     for file in files
-      compilePath (path.join source, file), no, base
+      compilePath (path.join source, file), false, base
   else if topLevel or helpers.isCoffee source
     sources.push source
     sourceCode.push null
@@ -183,7 +183,7 @@ compilePath = (source, topLevel, base) ->
       if err.code is 'ENOENT' then return else throw err
     compileScript source, code.toString(), base
   else
-    notSources[source] = yes
+    notSources[source] = true
 
 findDirectoryIndex = (source) ->
   for ext in CoffeeScript.FILE_EXTENSIONS
@@ -331,13 +331,13 @@ watchDir = (source, base) ->
           throw err unless err.code is 'ENOENT'
           return stopWatcher()
         for file in files
-          compilePath (path.join source, file), no, base
+          compilePath (path.join source, file), false, base
 
   stopWatcher = ->
     watcher.close()
     removeSourceDir source, base
 
-  watchedDirs[source] = yes
+  watchedDirs[source] = true
   try
     startWatcher()
   catch err
@@ -345,10 +345,10 @@ watchDir = (source, base) ->
 
 removeSourceDir = (source, base) ->
   delete watchedDirs[source]
-  sourcesChanged = no
+  sourcesChanged = false
   for file in sources when source is path.dirname file
     removeSource file, base
-    sourcesChanged = yes
+    sourcesChanged = true
   compileJoin() if sourcesChanged
 
 # Remove a file from our source list, and source code cache. Optionally remove
@@ -370,7 +370,7 @@ silentUnlink = (path) ->
 
 # Get the corresponding output JavaScript path for a source file.
 outputPath = (source, base, extension=".js") ->
-  basename  = helpers.baseFileName source, yes, useWinPathSep
+  basename  = helpers.baseFileName source, true, useWinPathSep
   srcDir    = path.dirname source
   dir = unless opts.outputPath
     srcDir
@@ -406,7 +406,7 @@ writeJs = (base, sourcePath, js, jsPath, generatedSourceMap = null) ->
   compile = ->
     if opts.compile
       js = ' ' if js.length <= 0
-      if generatedSourceMap then js = "#{js}\n//# sourceMappingURL=#{helpers.baseFileName sourceMapPath, no, useWinPathSep}\n"
+      if generatedSourceMap then js = "#{js}\n//# sourceMappingURL=#{helpers.baseFileName sourceMapPath, false, useWinPathSep}\n"
       fs.writeFile jsPath, js, (err) ->
         if err
           printLine err.message
@@ -489,7 +489,7 @@ compileOptions = (filename, base) ->
     unless opts.transpile.filename
       opts.transpile.filename = filename or path.resolve(base or process.cwd(), '<anonymous>')
   else
-    opts.transpile = no
+    opts.transpile = false
 
   answer =
     filename: filename
@@ -509,13 +509,13 @@ compileOptions = (filename, base) ->
         jsPath
         sourceRoot: path.relative jsDir, cwd
         sourceFiles: [path.relative cwd, filename]
-        generatedFile: helpers.baseFileName(jsPath, no, useWinPathSep)
+        generatedFile: helpers.baseFileName(jsPath, false, useWinPathSep)
       }
     else
       answer = helpers.merge answer,
         sourceRoot: ""
-        sourceFiles: [helpers.baseFileName filename, no, useWinPathSep]
-        generatedFile: helpers.baseFileName(filename, yes, useWinPathSep) + ".js"
+        sourceFiles: [helpers.baseFileName filename, false, useWinPathSep]
+        generatedFile: helpers.baseFileName(filename, true, useWinPathSep) + ".js"
   answer
 
 # Start up a new Node.js instance with the arguments in `--nodejs` passed to

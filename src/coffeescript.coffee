@@ -88,10 +88,10 @@ exports.compile = compile = withPrettyErrors (code, options = {}) ->
   )
 
   # Check for import or export; if found, force bare mode.
-  unless options.bare? and options.bare is yes
+  unless options.bare? and options.bare is true
     for token in tokens
       if token[0] in ['IMPORT', 'EXPORT']
-        options.bare = yes
+        options.bare = true
         break
 
   fragments = parser.parse(tokens).compileToFragments options
@@ -320,7 +320,7 @@ getSourceMap = (filename, line, column) ->
   if sources[filename]?
     answer = compile sources[filename][sources[filename].length - 1],
       filename: filename
-      sourceMap: yes
+      sourceMap: true
       literate: helpers.isLiterate filename
     answer.sourceMap
   else

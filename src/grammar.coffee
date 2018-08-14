@@ -239,7 +239,7 @@ grammar =
     o 'Parenthetical'
     o 'Super'
     o 'This'
-    o 'SUPER Arguments',               -> new SuperCall LOC(1)(new Super), $2, no, $1
+    o 'SUPER Arguments',               -> new SuperCall LOC(1)(new Super), $2, false, $1
     o 'SimpleObjAssignable Arguments', -> new Call (new Value $1), $2
     o 'ObjSpreadExpr Arguments',       -> new Call $1, $2
   ]
@@ -311,8 +311,8 @@ grammar =
   # that hoovers up the remaining arguments.
   Param: [
     o 'ParamVar',                               -> new Param $1
-    o 'ParamVar ...',                           -> new Param $1, null, on
-    o '... ParamVar',                           -> new Param $2, null, on
+    o 'ParamVar ...',                           -> new Param $1, null, true
+    o '... ParamVar',                           -> new Param $2, null, true
     o 'ParamVar = Expression',                  -> new Param $1, $3
     o '...',                                    -> new Expansion
   ]
@@ -360,8 +360,8 @@ grammar =
 
   # A `super`-based expression that can be used as a value.
   Super: [
-    o 'SUPER . Property',                       -> new Super LOC(3)(new Access $3), [], no, $1
-    o 'SUPER INDEX_START Expression INDEX_END', -> new Super LOC(3)(new Index $3),  [], no, $1
+    o 'SUPER . Property',                       -> new Super LOC(3)(new Access $3), [], false, $1
+    o 'SUPER INDEX_START Expression INDEX_END', -> new Super LOC(3)(new Index $3),  [], false, $1
   ]
 
   # The general group of accessors into an object, by property, by prototype
@@ -379,7 +379,7 @@ grammar =
   # Indexing into an object or array using bracket notation.
   Index: [
     o 'INDEX_START IndexValue INDEX_END',       -> $2
-    o 'INDEX_SOAK  Index',                      -> extend $2, soak: yes
+    o 'INDEX_SOAK  Index',                      -> extend $2, soak: true
   ]
 
   IndexValue: [
@@ -489,8 +489,8 @@ grammar =
 
   # An optional existence check on a function.
   OptFuncExist: [
-    o '',                                       -> no
-    o 'FUNC_EXIST',                             -> yes
+    o '',                                       -> false
+    o 'FUNC_EXIST',                             -> true
   ]
 
   # The list of arguments to a function call.
@@ -683,10 +683,10 @@ grammar =
     o 'FOR ForVariables',        -> new For [], name: $2[0], index: $2[1]
     o 'FOR AWAIT ForVariables',  ->
         [name, index] = $3
-        new For [], {name, index, await: yes, awaitTag: (LOC(2) new Literal($2))}
+        new For [], {name, index, await: true, awaitTag: (LOC(2) new Literal($2))}
     o 'FOR OWN ForVariables',    ->
         [name, index] = $3
-        new For [], {name, index, own: yes, ownTag: (LOC(2) new Literal($2))}
+        new For [], {name, index, own: true, ownTag: (LOC(2) new Literal($2))}
   ]
 
   # An array of all accepted values for a variable inside the loop.
@@ -711,11 +711,11 @@ grammar =
   # in fixed-size increments.
   ForSource: [
     o 'FORIN Expression',                                           -> source: $2
-    o 'FOROF Expression',                                           -> source: $2, object: yes
+    o 'FOROF Expression',                                           -> source: $2, object: true
     o 'FORIN Expression WHEN Expression',                           -> source: $2, guard: $4
     o 'FORIN ExpressionLine WHEN Expression',                       -> source: $2, guard: $4
-    o 'FOROF Expression WHEN Expression',                           -> source: $2, guard: $4, object: yes
-    o 'FOROF ExpressionLine WHEN Expression',                       -> source: $2, guard: $4, object: yes
+    o 'FOROF Expression WHEN Expression',                           -> source: $2, guard: $4, object: true
+    o 'FOROF ExpressionLine WHEN Expression',                       -> source: $2, guard: $4, object: true
     o 'FORIN Expression BY Expression',                             -> source: $2, step:  $4
     o 'FORIN ExpressionLine BY Expression',                         -> source: $2, step:  $4
     o 'FORIN Expression WHEN Expression BY Expression',             -> source: $2, guard: $4, step: $6
@@ -726,18 +726,18 @@ grammar =
     o 'FORIN ExpressionLine BY Expression WHEN Expression',         -> source: $2, step:  $4, guard: $6
     o 'FORIN Expression BY ExpressionLine WHEN Expression',         -> source: $2, step:  $4, guard: $6
     o 'FORIN ExpressionLine BY ExpressionLine WHEN Expression',     -> source: $2, step:  $4, guard: $6
-    o 'FORFROM Expression',                                         -> source: $2, from: yes
-    o 'FORFROM Expression WHEN Expression',                         -> source: $2, guard: $4, from: yes
-    o 'FORFROM ExpressionLine WHEN Expression',                     -> source: $2, guard: $4, from: yes
+    o 'FORFROM Expression',                                         -> source: $2, from: true
+    o 'FORFROM Expression WHEN Expression',                         -> source: $2, guard: $4, from: true
+    o 'FORFROM ExpressionLine WHEN Expression',                     -> source: $2, guard: $4, from: true
   ]
 
   ForLineSource: [
     o 'FORIN ExpressionLine',                                       -> source: $2
-    o 'FOROF ExpressionLine',                                       -> source: $2, object: yes
+    o 'FOROF ExpressionLine',                                       -> source: $2, object: true
     o 'FORIN Expression WHEN ExpressionLine',                       -> source: $2, guard: $4
     o 'FORIN ExpressionLine WHEN ExpressionLine',                   -> source: $2, guard: $4
-    o 'FOROF Expression WHEN ExpressionLine',                       -> source: $2, guard: $4, object: yes
-    o 'FOROF ExpressionLine WHEN ExpressionLine',                   -> source: $2, guard: $4, object: yes
+    o 'FOROF Expression WHEN ExpressionLine',                       -> source: $2, guard: $4, object: true
+    o 'FOROF ExpressionLine WHEN ExpressionLine',                   -> source: $2, guard: $4, object: true
     o 'FORIN Expression BY ExpressionLine',                         -> source: $2, step:  $4
     o 'FORIN ExpressionLine BY ExpressionLine',                     -> source: $2, step:  $4
     o 'FORIN Expression WHEN Expression BY ExpressionLine',         -> source: $2, guard: $4, step: $6
@@ -748,9 +748,9 @@ grammar =
     o 'FORIN ExpressionLine BY Expression WHEN ExpressionLine',     -> source: $2, step:  $4, guard: $6
     o 'FORIN Expression BY ExpressionLine WHEN ExpressionLine',     -> source: $2, step:  $4, guard: $6
     o 'FORIN ExpressionLine BY ExpressionLine WHEN ExpressionLine', -> source: $2, step:  $4, guard: $6
-    o 'FORFROM ExpressionLine',                                     -> source: $2, from: yes
-    o 'FORFROM Expression WHEN ExpressionLine',                     -> source: $2, guard: $4, from: yes
-    o 'FORFROM ExpressionLine WHEN ExpressionLine',                 -> source: $2, guard: $4, from: yes
+    o 'FORFROM ExpressionLine',                                     -> source: $2, from: true
+    o 'FORFROM Expression WHEN ExpressionLine',                     -> source: $2, guard: $4, from: true
+    o 'FORFROM ExpressionLine WHEN ExpressionLine',                 -> source: $2, guard: $4, from: true
   ]
 
   Switch: [

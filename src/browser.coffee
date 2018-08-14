@@ -11,14 +11,14 @@ CoffeeScript = require './coffeescript'
 # CoffeeScript compiler. (So that `cake test:browser` also works in Node,
 # use either `window.eval` or `global.eval` as appropriate).
 CoffeeScript.eval = (code, options = {}) ->
-  options.bare ?= on
+  options.bare ?= true
   globalRoot = if window? then window else global
   globalRoot['eval'] compile code, options
 
 # Running code does not provide access to this scope.
 CoffeeScript.run = (code, options = {}) ->
-  options.bare      = on
-  options.shiftLine = on
+  options.bare      = true
+  options.shiftLine = true
   Function(compile code, options)()
 
 # Export this more limited `CoffeeScript` than what is exported by
@@ -97,6 +97,6 @@ runScripts = ->
 
 # Listen for window load, both in decent browsers and in IE.
 if window.addEventListener
-  window.addEventListener 'DOMContentLoaded', runScripts, no
+  window.addEventListener 'DOMContentLoaded', runScripts, false
 else
   window.attachEvent 'onload', runScripts

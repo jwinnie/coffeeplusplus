@@ -5,8 +5,8 @@ nodeREPL = require 'repl'
 CoffeeScript = require './'
 {merge, updateSyntaxError} = require './helpers'
 
-sawSIGINT = no
-transpile = no
+sawSIGINT = false
+transpile = false
 
 replDefaults =
   prompt: 'coffee> ',
@@ -49,7 +49,7 @@ replDefaults =
       isAsync = ast.isAsync
       # Invoke the wrapping closure.
       ast    = new Block [new Call ast]
-      js     = ast.compile {bare: yes, locals: Object.keys(context), referencedVars, sharedScope: yes}
+      js     = ast.compile {bare: true, locals: Object.keys(context), referencedVars, sharedScope: true}
       if transpile
         js = transpile.transpile(js, transpile.options).code
         # Strip `"use strict"`, to avoid an exception on assigning to
@@ -60,7 +60,7 @@ replDefaults =
       if isAsync
         result.then (resolvedResult) ->
           cb null, resolvedResult unless sawSIGINT
-        sawSIGINT = no
+        sawSIGINT = false
       else
         cb null, result
     catch err
@@ -80,7 +80,7 @@ addMultilineHandler = (repl) ->
   origPrompt = repl._prompt ? repl.prompt
 
   multiline =
-    enabled: off
+    enabled: false
     initialPrompt: origPrompt.replace /^[^> ]*/, (x) -> x.replace /./g, '-'
     prompt: origPrompt.replace /^[^> ]*>?/, (x) -> x.replace /./g, '.'
     buffer: ''
@@ -156,7 +156,7 @@ addHistory = (repl, filename, maxSize) ->
       lastLine = code
 
   # XXX: The SIGINT event from REPLServer is undocumented, so this is a bit fragile
-  repl.on 'SIGINT', -> sawSIGINT = yes
+  repl.on 'SIGINT', -> sawSIGINT = true
   repl.on 'exit', -> fs.closeSync fd
 
   # Add a command to show the history stack

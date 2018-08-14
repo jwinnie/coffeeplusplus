@@ -51,7 +51,7 @@ exports.OptionParser = class OptionParser
         options[name] = true
 
     if positional[0] is '--'
-      options.doubleDashed = yes
+      options.doubleDashed = true
       positional = positional[1..]
 
     options.arguments = positional

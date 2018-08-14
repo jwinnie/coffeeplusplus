@@ -43,11 +43,11 @@ exports.Lexer = class Lexer
     @indentLiteral = ''          # The indentation.
     @ends       = []             # The stack for pairing up tokens.
     @tokens     = []             # Stream of parsed tokens in the form `['TYPE', value, location data]`.
-    @seenFor    = no             # Used to recognize `FORIN`, `FOROF` and `FORFROM` tokens.
-    @seenImport = no             # Used to recognize `IMPORT FROM? AS?` tokens.
-    @seenExport = no             # Used to recognize `EXPORT FROM? AS?` tokens.
-    @importSpecifierList = no    # Used to identify when in an `IMPORT {...} FROM? ...`.
-    @exportSpecifierList = no    # Used to identify when in an `EXPORT {...} FROM? ...`.
+    @seenFor    = false          # Used to recognize `FORIN`, `FOROF` and `FORFROM` tokens.
+    @seenImport = false          # Used to recognize `IMPORT FROM? AS?` tokens.
+    @seenExport = false          # Used to recognize `EXPORT FROM? AS?` tokens.
+    @importSpecifierList = false # Used to identify when in an `IMPORT {...} FROM? ...`.
+    @exportSpecifierList = false # Used to identify when in an `EXPORT {...} FROM? ...`.
     @csxDepth = 0                # Used to optimize CSX checks, how deep in CSX we are.
     @csxObjAttribute = {}        # Used to detect if CSX attributes is wrapped in {} (<div {props...} />).
 
@@ -83,7 +83,7 @@ exports.Lexer = class Lexer
 
     @closeIndentation()
     @error "missing #{end.tag}", (end.origin ? end)[2] if end = @ends.pop()
-    return @tokens if opts.rewrite is off
+    return @tokens if opts.rewrite is false
     (new Rewriter).rewrite @tokens
 
   # Preprocess the code to remove leading and trailing whitespace, carriage
@@ -166,19 +166,19 @@ exports.Lexer = class Lexer
       if tag is 'WHEN' and @tag() in LINE_BREAK
         tag = 'LEADING_WHEN'
       else if tag is 'FOR'
-        @seenFor = yes
+        @seenFor = true
       else if tag is 'UNLESS'
         tag = 'IF'
       else if tag is 'IMPORT'
-        @seenImport = yes
+        @seenImport = true
       else if tag is 'EXPORT'
-        @seenExport = yes
+        @seenExport = true
       else if tag in UNARY
         tag = 'UNARY'
       else if tag in RELATION
         if tag isnt 'INSTANCEOF' and @seenFor
           tag = 'FOR' + tag
-          @seenFor = no
+          @seenFor = false
         else
           tag = 'RELATION'
           if @value() is '!'
@@ -187,7 +187,7 @@ exports.Lexer = class Lexer
     else if tag is 'IDENTIFIER' and @seenFor and id is 'from' and
        isForFrom(prev)
       tag = 'FORFROM'
-      @seenFor = no
+      @seenFor = false
     # Throw an error on attempts to use `get` or `set` as keywords, or
     # what CoffeeScript would normally interpret as calls to functions named
     # `get` or `set`, i.e. `get({foo: function () {}})`.
@@ -228,7 +228,7 @@ exports.Lexer = class Lexer
     if colon
       colonOffset = input.lastIndexOf if inCSXTag then '=' else ':'
       colonToken = @token ':', ':', colonOffset, colon.length
-      colonToken.csxColon = yes if inCSXTag # used by rewriter
+      colonToken.csxColon = true if inCSXTag # used by rewriter
     if inCSXTag and tag is 'IDENTIFIER' and prev[0] isnt ':'
       @token ',', ',', 0, 0, tagToken
 
@@ -363,10 +363,10 @@ exports.Lexer = class Lexer
     unless prev
       # If there’s no previous token, create a placeholder token to attach
       # this comment to; and follow with a newline.
-      commentAttachments[0].newLine = yes
+      commentAttachments[0].newLine = true
       @lineToken @chunk[comment.length..] # Set the indent.
       placeholderToken = @makeToken 'JS', ''
-      placeholderToken.generated = yes
+      placeholderToken.generated = true
       placeholderToken.comments = commentAttachments
       @tokens.push placeholderToken
       @newlineToken 0
@@ -402,7 +402,7 @@ exports.Lexer = class Lexer
         @commentToken comment for comment in comments if comments
       when match = REGEX.exec @chunk
         [regex, body, closed] = match
-        @validateEscapes body, isRegex: yes, offsetInChunk: 1
+        @validateEscapes body, isRegex: true, offsetInChunk: 1
         index = regex.length
         prev = @prev()
         if prev
@@ -430,7 +430,7 @@ exports.Lexer = class Lexer
         @token 'REGEX_START', '(', 0, 0, origin
         @token 'IDENTIFIER', 'RegExp', 0, 0
         @token 'CALL_START', '(', 0, 0
-        @mergeInterpolationTokens tokens, {delimiter: '"', double: yes}, (str) =>
+        @mergeInterpolationTokens tokens, {delimiter: '"', double: true}, (str) =>
           @formatHeregex str, { flags }
         if flags
           @token ',', ',', index - 1, 0
@@ -456,9 +456,9 @@ exports.Lexer = class Lexer
 
     prev = @prev()
     backslash = prev?[0] is '\\'
-    @seenFor = no unless backslash and @seenFor
-    @seenImport = no unless (backslash and @seenImport) or @importSpecifierList
-    @seenExport = no unless (backslash and @seenExport) or @exportSpecifierList
+    @seenFor = false unless backslash and @seenFor
+    @seenImport = false unless (backslash and @seenImport) or @importSpecifierList
+    @seenExport = false unless (backslash and @seenExport) or @exportSpecifierList
 
     size = indent.length - 1 - indent.lastIndexOf '\n'
     noNewlines = @unfinished()
@@ -589,10 +589,10 @@ exports.Lexer = class Lexer
       else if firstChar is '{'
         if prevChar is ':'
           token = @token '(', '('
-          @csxObjAttribute[@csxDepth] = no
+          @csxObjAttribute[@csxDepth] = false
         else
           token = @token '{', '{'
-          @csxObjAttribute[@csxDepth] = yes
+          @csxObjAttribute[@csxDepth] = true
         @ends.push {tag: '}', origin: token}
         return 1
       else if firstChar is '>'
@@ -622,7 +622,7 @@ exports.Lexer = class Lexer
         @pair firstChar
         if @csxObjAttribute[@csxDepth]
           @token '}', '}'
-          @csxObjAttribute[@csxDepth] = no
+          @csxObjAttribute[@csxDepth] = false
         else
           @token ')', ')'
         @token ',', ','
@@ -633,7 +633,7 @@ exports.Lexer = class Lexer
       return 0
 
   atCSXTag: (depth = 0) ->
-    return no if @csxDepth is 0
+    return false if @csxDepth is 0
     i = @ends.length - 1
     i-- while @ends[i]?.tag is 'OUTDENT' or depth-- > 0 # Ignore indents.
     last = @ends[i]
@@ -667,17 +667,17 @@ exports.Lexer = class Lexer
       return value.length if skipToken
 
     if value is '{' and @seenImport
-      @importSpecifierList = yes
+      @importSpecifierList = true
     else if @importSpecifierList and value is '}'
-      @importSpecifierList = no
+      @importSpecifierList = false
     else if value is '{' and prev?[0] is 'EXPORT'
-      @exportSpecifierList = yes
+      @exportSpecifierList = true
     else if @exportSpecifierList and value is '}'
-      @exportSpecifierList = no
+      @exportSpecifierList = false
 
     if value is ';'
       @error 'unexpected ;' if prev?[0] in ['=', UNFINISHED...]
-      @seenFor = @seenImport = @seenExport = no
+      @seenFor = @seenImport = @seenExport = false
       tag = 'TERMINATOR'
     else if value is '*' and prev?[0] is 'EXPORT'
       tag = 'EXPORT_ALL'
@@ -782,7 +782,7 @@ exports.Lexer = class Lexer
       [line, column] = @getLineAndColumnFromChunk offsetInChunk + interpolationOffset
       rest = str[interpolationOffset..]
       {tokens: nested, index} =
-        new Lexer().tokenize rest, line: line, column: column, untilBalanced: on
+        new Lexer().tokenize rest, line: line, column: column, untilBalanced: true
       # Account for the `#` in `#{`.
       index += interpolationOffset
 
@@ -981,7 +981,7 @@ exports.Lexer = class Lexer
     token?[0]
 
   # Peek at the last value in the token stream.
-  value: (useOrigin = no) ->
+  value: (useOrigin = false) ->
     [..., token] = @tokens
     if useOrigin and token?.origin?
       token.origin?[1]
@@ -1113,17 +1113,17 @@ isForFrom = (prev) ->
     # `for i from from`, `for from from iterable`
     if prev[1] is 'from'
       prev[1][0] = 'IDENTIFIER'
-      yes
+      true
     # `for i from iterable`
-    yes
+    true
   # `for from…`
   else if prev[0] is 'FOR'
-    no
+    false
   # `for {from}…`, `for [from]…`, `for {a, from}…`, `for {a: from}…`
   else if prev[1] in ['{', '[', ',', ':']
-    no
+    false
   else
-    yes
+    true
 
 # Constants
 # ---------
@@ -1150,10 +1150,6 @@ COFFEE_ALIAS_MAP =
   is   : '=='
   isnt : '!='
   not  : '!'
-  yes  : 'true'
-  no   : 'false'
-  on   : 'true'
-  off  : 'false'
 
 COFFEE_ALIASES  = (key for key of COFFEE_ALIAS_MAP)
 COFFEE_KEYWORDS = COFFEE_KEYWORDS.concat COFFEE_ALIASES
@@ -1164,7 +1160,7 @@ COFFEE_KEYWORDS = COFFEE_KEYWORDS.concat COFFEE_ALIASES
 RESERVED = [
   'case', 'function', 'var', 'void', 'with', 'const', 'let', 'enum'
   'native', 'implements', 'interface', 'package', 'private'
-  'protected', 'public', 'static'
+  'protected', 'public', 'static', 'yes', 'no', 'on', 'off'
 ]
 
 STRICT_PROSCRIBED = ['arguments', 'eval']
