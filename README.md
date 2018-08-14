@@ -1,43 +1,24 @@
-```
-      @@@@@@@                @@@@  @@@@@
-     @@@@@@@@@@              @@@   @@@                                           {
-    @@@@     @@              @@@   @@@                                        }   }   {
-   @@@@          @@@@@@@    @@@   @@@     @@@@@@    @@@@@@                   {   {  }  }
-  @@@@          @@@   @@  @@@@@  @@@@@@  @@@   @@  @@@@  @@                   }   }{  {
-  @@@@         @@@@   @@   @@@    @@@   @@@   @@@ @@@   @@@                  {  }{  }  }
-  @@@@        @@@@    @@   @@@    @@@   @@@@@@@@  @@@@@@@@                  { }{ }{  { }
-  @@@@@       @@@@   @@    @@@    @@@   @@@       @@@                     {  { } { } { }  }
-   @@@@@@@@@@ @@@@@@@@    @@@    @@@    @@@@@@@@  @@@@@@@@                 { }   { }   { }
-      @@@@@               @@@    @@@      @@@@@     @@@@@           @@@@@@   { }   { }    @@@@@@@
-                         @@@    @@@                                 @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-      @@@@@@            @@@    @@@                                @@ @@@@@@@@@@@@@@@@@@@@@@@@@@
-   @@@@    @@          @@@   @@@@                                @@   @@@@@@@@@@@@@@@@@@@@@@@@
-   @@@@   @@@                       @@                  @@@@     @@@   @@@@@@@@@@@@@@@@@@@@@
-   @@@@@          @@@@@   @@  @@   @@@     @@@@@@@     @@@@@      @@@    @@@@@@@@@@@@@@@@@@
-     @@@@@      @@@  @@@ @@@@@@@@         @@@@  @@@@  @@@@@@@       @@@   @@@@@@@@@@@@@@@@
-       @@@@@   @@@       @@@@     @@@@    @@@    @@@   @@@                 @@@@@@@@@@@@@@
- @@@@@  @@@@  @@@@      @@@@      @@@@   @@@@   @@@@  @@@@
-@@@     @@@@  @@@       @@@@     @@@@    @@@    @@@@  @@@@
-@@@     @@@@  @@@@     @@@@      @@@@   @@@@   @@@@  @@@@
- @@@@@@@@@     @@@@@@  @@@@       @@@@  @@@@@@@@@    @@@@
-                                       @@@          @@@@
-                                      @@@
-                                      @@@
-```
+# Coffee++
 
-CoffeeScript is a little language that compiles into JavaScript.
+🚧 Warning: under heavy development. Not ready for production. 🚧
+
+A fork of CoffeeScript inspired by Elixir and Python.
+Current features:
+- Remove yes/no, on/off aliases
+- Add Elixir/F# pipe operator (`|>`)
 
 ## Installation
 
-Once you have Node.js installed:
-
-```shell
-# Install locally for a project:
-npm install --save-dev coffeescript
-
-# Install globally to execute .coffee files anywhere:
-npm install --global coffeescript
+There is no NPM package yet; you will have to install from source:
 ```
+(~)$ git clone https://github.com/jwinnie/coffeescript
+(~)$ cd coffeescript
+(coffeescript)$ npm i
+(coffeescript)$ sudo npm i -g coffeescript
+(coffeescript)$ cake build # Build the source code
+(coffeescript)$ cake test # Run the test suite
+```
+The binaries can be found under the `bin/` directory.
 
 ## Getting Started
 
