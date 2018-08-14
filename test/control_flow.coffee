@@ -455,7 +455,7 @@ test "#2555, strange function if bodies", ->
   failure = -> ok false
 
   success() if do ->
-    yes
+    true
 
   failure() if try
     false

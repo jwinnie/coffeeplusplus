@@ -7,11 +7,11 @@ egal = (a, b) ->
 
 # A recursive functional equivalence helper; uses egal for testing equivalence.
 arrayEgal = (a, b) ->
-  if egal a, b then yes
+  if egal a, b then true
   else if a instanceof Array and b instanceof Array
-    return no unless a.length is b.length
-    return no for el, idx in a when not arrayEgal el, b[idx]
-    yes
+    return false unless a.length is b.length
+    return false for el, idx in a when not arrayEgal el, b[idx]
+    true
 
 diffOutput = (expectedOutput, actualOutput) ->
   expectedOutputLines = expectedOutput.split '\n'
@@ -33,7 +33,7 @@ exports.arrayEq = (a, b, msg) ->
   "Expected #{reset}#{a}#{red} to deep equal #{reset}#{b}#{red}"
 
 exports.eqJS = (input, expectedOutput, msg) ->
-  actualOutput = CoffeeScript.compile input, bare: yes
+  actualOutput = CoffeeScript.compile input, bare: true
   .replace /^\s+|\s+$/g, '' # Trim leading/trailing whitespace.
   ok egal(expectedOutput, actualOutput), msg or diffOutput expectedOutput, actualOutput
 

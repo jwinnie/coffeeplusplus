@@ -167,7 +167,7 @@ test "#4260: splat after existential operator soak", ->
   arrayEq foo(...a?.b), [3]
   arrayEq foo(c?.b ? []...), [undefined]
   arrayEq foo(...c?.b ? []), [undefined]
-  e = yes
+  e = true
   f = null
   arrayEq [(a if e)?.b...], [3]
   arrayEq [(a if f)?.b ? []...], []
@@ -188,7 +188,7 @@ test "#4260: splat after existential operator soak", ->
 
 test "#1349: trailing if after splat", ->
   a = [3]
-  b = yes
+  b = true
   c = null
   foo = (a) -> [a]
   arrayEq [a if b...], [3]
