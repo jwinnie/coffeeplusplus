@@ -10,15 +10,15 @@ Current features:
 ## Installation
 
 There is no NPM package yet; you will have to install from source:
-```
+```shell
 (~)$ git clone https://github.com/jwinnie/coffeescript
 (~)$ cd coffeescript
 (coffeescript)$ npm i
-(coffeescript)$ sudo npm i -g coffeescript
+(coffeescript)$ sudo npm i -g coffeescript # Required in order to run cake
 (coffeescript)$ cake build # Build the source code
 (coffeescript)$ cake test # Run the test suite
 ```
-The binaries can be found under the `bin/` directory.
+Run the Coffee++ compiler in development with `bin/coffee`. 
 
 ## Getting Started
 
